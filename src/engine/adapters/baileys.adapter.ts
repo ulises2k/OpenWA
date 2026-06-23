@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import * as qrcode from 'qrcode';
 import type * as BaileysLib from '@whiskeysockets/baileys';
@@ -314,8 +315,12 @@ export class BaileysAdapter implements IWhatsAppEngine {
       }
 
       if (statusCode === this.lib?.DisconnectReason.loggedOut) {
-        // Credentials invalidated — terminal. Re-linking requires a fresh QR/pairing.
+        // Credentials invalidated — terminal. Re-linking requires a fresh QR/pairing, so the now-dead
+        // multi-file auth dir MUST be wiped: otherwise the next connect() reloads the stale creds and
+        // Baileys silently retries them instead of emitting a new QR, leaving the session stuck (no QR).
         this.setStatus(EngineStatus.DISCONNECTED);
+        this.sock = null;
+        void this.clearAuthState();
         this.callbacks.onDisconnected?.('logged out');
         return;
       }
@@ -390,8 +395,25 @@ export class BaileysAdapter implements IWhatsAppEngine {
     this.sock = null;
     this.setStatus(EngineStatus.DISCONNECTED);
     await this.config.messageStore?.clearSession(this.config.sessionId).catch(() => undefined);
-    // leaves the multi-file auth dir on disk; a fresh link overwrites it. Add fs cleanup if
-    // stale creds ever block re-linking.
+    // Wipe the multi-file auth dir so a fresh link starts clean — stale creds would otherwise be
+    // reloaded on the next connect() and block re-linking (Baileys retries them, no QR emitted).
+    await this.clearAuthState();
+  }
+
+  /**
+   * Delete this session's on-disk multi-file auth state (`authDir/sessionId`). Required after a terminal
+   * logout: Baileys would otherwise reload the now-invalid creds on the next connect() and retry them
+   * instead of emitting a fresh QR, leaving re-linking stuck. `force` makes a missing dir a no-op.
+   */
+  private async clearAuthState(): Promise<void> {
+    try {
+      await fs.promises.rm(this.authPath, { recursive: true, force: true });
+      this.logger.log('Cleared Baileys auth state', { authPath: this.authPath });
+    } catch (err) {
+      this.logger.warn('Failed to clear Baileys auth state', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   destroy(): Promise<void> {

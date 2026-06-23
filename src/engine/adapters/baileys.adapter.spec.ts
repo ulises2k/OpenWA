@@ -1,4 +1,6 @@
 import { EventEmitter } from 'events';
+import * as fs from 'fs';
+import * as path from 'path';
 
 jest.mock('../../common/media/load-remote-media', () => ({
   loadRemoteMediaBuffer: jest.fn(),
@@ -161,6 +163,43 @@ describe('BaileysAdapter lifecycle & status', () => {
     expect(adapter.getStatus()).toBe(EngineStatus.DISCONNECTED);
     expect(onDisconnected).toHaveBeenCalled();
     expect(makeWASocket).not.toHaveBeenCalled(); // no reconnect
+  });
+
+  it('on a logged-out close: clears the on-disk auth dir so a fresh connect shows a new QR', async () => {
+    // Root cause of the "QR never appears after logout" bug: the now-invalid multi-file auth dir was
+    // left on disk, so the next connect() reloaded the dead creds and Baileys retried them instead of
+    // emitting a QR. A terminal loggedOut MUST wipe the auth dir.
+    const rmSpy = jest.spyOn(fs.promises, 'rm').mockResolvedValue(undefined);
+    try {
+      const adapter = newAdapter();
+      await adapter.initialize(noopCallbacks({}));
+      fakeSock.fire('connection.update', {
+        connection: 'close',
+        lastDisconnect: { error: { output: { statusCode: 401 } } },
+      });
+      await new Promise(r => setImmediate(r)); // let the fire-and-forget clearAuthState() settle
+      expect(rmSpy).toHaveBeenCalledWith(
+        path.join('./data/baileys', 'sess-1'),
+        expect.objectContaining({ recursive: true, force: true }),
+      );
+    } finally {
+      rmSpy.mockRestore();
+    }
+  });
+
+  it('logout() clears the on-disk auth dir (stale creds would otherwise block re-linking)', async () => {
+    const rmSpy = jest.spyOn(fs.promises, 'rm').mockResolvedValue(undefined);
+    try {
+      const adapter = newAdapter();
+      await adapter.initialize(noopCallbacks({}));
+      await adapter.logout();
+      expect(rmSpy).toHaveBeenCalledWith(
+        path.join('./data/baileys', 'sess-1'),
+        expect.objectContaining({ recursive: true, force: true }),
+      );
+    } finally {
+      rmSpy.mockRestore();
+    }
   });
 
   it('on a recoverable close: reconnects (re-creates the socket) and does NOT fire onDisconnected', async () => {
