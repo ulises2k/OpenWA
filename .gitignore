@@ -65,6 +65,9 @@ uploads/
 *.tmp
 *.temp
 
+# Local secrets / credentials (never commit)
+RASPBERRY.md
+
 # Git worktrees
 .worktrees/
 
