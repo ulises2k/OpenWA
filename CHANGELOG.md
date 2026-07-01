@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.17] - 2026-07-01
+
 ### Added
 
 - **Send true WhatsApp voice notes (PTT).** The `send-audio` endpoint, bulk send, and the `MessageSendAudio` agent tool now accept an optional `ptt` boolean; when set, the message is delivered as a real voice note — the microphone bubble with a waveform — instead of a plain audio file, on both the Baileys and whatsapp-web.js engines. Voice notes require `audio/ogg; codecs=opus` audio, so the server defaults the mimetype to that when `ptt` is set without one (supply OGG/Opus bytes for reliable playback), and stores the message as `type: "voice"`. Fulfills FR-MSG-004. (OpenWA-n8n #13)
