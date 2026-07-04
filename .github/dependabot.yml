@@ -17,6 +17,14 @@ updates:
     labels:
       - dependencies
     ignore:
+      # Fork pin: keep Baileys at 6.7.23. 6.17.x removes Contact.jid (used in
+      # src/engine/adapters/baileys-session-store.ts) and breaks the Baileys
+      # engine. Never let any update bump it. See .ncurc.yml for the ncu guard.
+      - dependency-name: "@whiskeysockets/baileys"
+      # Ignore major bumps for packages that need manual migration
+      # Uncomment specific packages below if you want to skip them entirely
+      # - dependency-name: "typescript"
+      #   update-types: ["version-update:semver-major"]
       # TypeScript 7 is the native port: `require('typescript')` no longer exposes the classic
       # compiler API from its main entry, so @typescript-eslint/typescript-estree throws at load
       # reading `ts.Extension` ("Cannot read properties of undefined (reading 'Cjs')"). ts-jest@29

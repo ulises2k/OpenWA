@@ -1,0 +1,11 @@
+# npm-check-updates (ncu) config — fork guard.
+#
+# WHY: this fork pins @whiskeysockets/baileys to 6.7.23 on purpose. Version
+# 6.17.x removes Contact.jid (used in src/engine/adapters/baileys-session-store.ts)
+# and breaks the Baileys engine. An `ncu -u` run rewrites even exact pins to the
+# latest version, which is what keeps re-bumping Baileys to 6.17.16 and breaking
+# the fork. `reject` tells ncu to never propose an upgrade for these packages.
+#
+# All other dependencies still update normally ("actualiza el fork siempre").
+reject:
+  - "@whiskeysockets/baileys"
