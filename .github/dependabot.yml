@@ -17,9 +17,10 @@ updates:
     labels:
       - dependencies
     ignore:
-      # Fork pin: keep Baileys at 6.7.23. 6.17.x removes Contact.jid (used in
-      # src/engine/adapters/baileys-session-store.ts) and breaks the Baileys
-      # engine. Never let any update bump it. See .ncurc.yml for the ncu guard.
+      # Fork pin: track Baileys at exactly what upstream ships & tests — currently
+      # 7.0.0-rc13 (upstream v0.8.15+). Baileys 7.x is an RC line (no stable 7.0.0;
+      # 6.7.23 is now `legacy`), so never let an automated PR drift it. Baileys moves
+      # only as a conscious, upstream-led decision. See .ncurc.yml for the ncu guard.
       - dependency-name: "@whiskeysockets/baileys"
       # Ignore major bumps for packages that need manual migration
       # Uncomment specific packages below if you want to skip them entirely
