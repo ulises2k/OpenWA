@@ -17,6 +17,11 @@ updates:
     labels:
       - dependencies
     ignore:
+      # Fork guard: Baileys tracks exactly the version upstream ships & tests (7.0.0-rc14). The 7.x
+      # line is still RC (no stable 7.0.0; 6.7.23 is `legacy`), so never let an automated PR drift it —
+      # it moves only as a conscious, upstream-led decision. See .ncurc.yml for the ncu guard.
+      # Everything else still updates ("actualiza el fork siempre").
+      - dependency-name: "@whiskeysockets/baileys"
       # TypeScript 7 is the native port: `require('typescript')` no longer exposes the classic
       # compiler API from its main entry, so @typescript-eslint/typescript-estree throws at load
       # reading `ts.Extension` ("Cannot read properties of undefined (reading 'Cjs')"). ts-jest@29
