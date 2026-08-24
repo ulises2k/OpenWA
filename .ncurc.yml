@@ -1,0 +1,13 @@
+# npm-check-updates (ncu) config — fork guard.
+#
+# WHY: @whiskeysockets/baileys is tracked at exactly the version upstream OpenWA
+# ships and tests — currently 7.0.0-rc14 (adopted with upstream v0.8.15+). Baileys
+# 7.x is still a release-candidate line: npm has no stable 7.0.0, and 6.7.23 is now
+# tagged `legacy`. An `ncu -u` run rewrites even exact pins to the newest version,
+# which could drift Baileys onto an untested rc/stable ahead of upstream. `reject`
+# tells ncu to never propose an upgrade, so Baileys moves only as a conscious,
+# upstream-led decision (verify against src/engine/adapters/*baileys* first).
+#
+# All other dependencies still update normally ("actualiza el fork siempre").
+reject:
+  - "@whiskeysockets/baileys"
