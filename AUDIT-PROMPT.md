@@ -61,6 +61,9 @@ No propongas fixes hasta tener la atribución.
 4. **Entrega** (`webhook_outbox_events` + `webhook_delivery_failures`): `state`, `attempts`, `createdAt`.
    `dispatched` = entregado inline o encolado; un fallo real va a `webhook_delivery_failures`.
    Revisá también filas `pending` viejas (entregas trabadas).
+   ⭐ **Si un consumidor NO responde y OpenWA está sano → leer `WEBHOOK-SECRET-DRIFT.md`**: un `401`
+   en `webhook_delivery_failures` es **drift del `WEBHOOK_SECRET`** entre el worker y el webhook
+   registrado (no un bug de OpenWA). `lastTriggeredAt` congelado = todo fallando.
 5. **Mensajes** (`messages`): agrupá por `sessionId` + `direction`.
    ⚠️ Ordená y filtrá por **`createdAt` o `rowid`**, NUNCA por `timestamp`
    (esa es la de WhatsApp, en SEGUNDOS: envenena cualquier filtro por fecha).
